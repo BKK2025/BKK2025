@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BKK & PATTAYA 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- 字體設定：新增 Noto Sans Thai -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&family=Cinzel:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-deep: #050505;
+            --glass-panel: rgba(30, 30, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --gold-primary: #D4AF37;
+        }
+
+        body {
+            /* 全站統一字體設定 */
+            font-family: 'Cinzel', 'Noto Serif TC', serif;
+            font-weight: 600; 
+            background-color: var(--bg-deep);
+            color: #f2f2f2;
+            -webkit-font-smoothing: antialiased;
+            background-image: radial-gradient(circle at 50% -20%, #2a2415 0%, #000000 70%);
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+        }
+
+        /* 泰文字體 */
+        .font-local { font-family: 'Noto Sans Thai', sans-serif; }
+        .font-num { font-family: 'Cinzel', serif; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .glass {
+            background: var(--glass-panel);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-dock {
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-top: 1px solid var(--glass-border);
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #F9F1D0 0%, #D4AF37 40%, #C59D24 60%, #F9F1D0 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 5s linear infinite;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .slide-up { animation: slideUp 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards; transform: translateY(100%); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .btn-press:active { transform: scale(0.94); transition: transform 0.1s; }
+        
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        .pt-safe { 
+            padding-top: calc(env(safe-area-inset-top) + 24px);
+        }
+
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .tab-content.active { display: block; opacity: 1; }
+
+        input, select, textarea { font-family: 'Noto Serif TC', serif; font-weight: 600; }
+        ::placeholder { color: #666; opacity: 1; font-weight: 500; }
+        
+        /* --- 核心修正：時間與日期輸入框 --- */
+        input[type="date"], input[type="time"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #18181b;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+            display: block;
+            text-align: left;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            
+            font-family: 'Noto Serif TC', serif !important;
+            font-weight: 500 !important;
+            font-size: 1rem;
+            color: white;
+            
+            height: 100%; 
+            min-height: 56px; 
+            
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        input[type="date"]::-webkit-date-and-time-value,
+        input[type="time"]::-webkit-date-and-time-value { 
+            display: flex;
+            align-items: center; 
+            height: 100%;
+            text-align: left;
+        }
+
+        #loading-screen {
+            position: fixed; inset: 0; background: #000; z-index: 999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body class="flex flex-col text-sm tracking-wide selection:bg-yellow-900 selection:text-white">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-gold-gradient text-xl font-bold animate-pulse tracking-widest">SAWASDEE...</div>
+    </div>
+
+    <!-- Header -->
+    <header class="pt-safe px-6 pb-4 flex justify-between items-center z-20 flex-shrink-0 bg-gradient-to-b from-black/90 to-transparent">
+        <h1 class="text-3xl font-extrabold text-white tracking-widest text-gold-gradient">THAILAND</h1>
+        <!-- 右上角人員管理按鈕 -->
+        <button onclick="openSubModal('modal-members')" class="w-10 h-10 rounded-full overflow-hidden border border-zinc-700 glass flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)] active:scale-90 transition group relative">
+            <i data-lucide="users" size="18" class="text-yellow-600 group-hover:text-white transition"></i>
+            <!-- 當前使用者指示點 -->
+            <div id="user-indicator" class="hidden absolute bottom-1 right-1 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+        </button>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 overflow-y-auto no-scrollbar relative pb-32 px-6" id="main-container">
+        
+        <!-- 0. Dashboard -->
+        <div id="view-dashboard" class="tab-content active space-y-5 fade-in">
+            <div class="mt-2 mb-6">
+                <!-- 單行顯示 -->
+                <h2 class="text-xl font-bold text-white tracking-wide whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer" onclick="openSubModal('modal-members')">
+                    早安，<span id="greeting-name" class="text-gold-gradient font-black">旅人</span>
+                    <span id="greeting-hint" class="text-[10px] text-zinc-500 ml-1 font-normal hidden">(點此設定)</span>
+                </h2>
+                <p class="text-zinc-500 text-xs mt-1 tracking-widest font-bold">曼谷&芭達雅，陽光與海灘的旅程。</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Weather (Real-time) -->
+                <a href="https://www.google.com/search?q=pattaya+weather" target="_blank" class="glass rounded-[2rem] p-5 col-span-2 relative overflow-hidden flex items-center justify-between group active:scale-98 transition cursor-pointer">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-yellow-600/20 rounded-full blur-3xl"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] text-zinc-300 border border-white/10 px-2 py-0.5 rounded-full tracking-wider font-bold">芭達雅</span>
+                            <!-- Dynamic Icon -->
+                            <i id="weather-icon" data-lucide="sun" class="text-white/90" size="16"></i>
+                        </div>
+                        <!-- Dynamic Description -->
+                        <div id="weather-desc" class="text-[11px] text-zinc-400 mt-1 font-bold flex items-center gap-1">
+                            載入中... <i data-lucide="external-link" size="10" class="opacity-50"></i>
+                        </div>
+                    </div>
+                    <!-- Dynamic Temperature -->
+                    <div id="weather-temp" class="text-5xl font-bold text-white relative z-10 font-num">--°C</div>
+                </a>
+
+                <!-- Next Destination -->
+                <div class="glass rounded-[2rem] p-6 col-span-2 border-l-2 border-l-yellow-600 relative overflow-hidden group active:scale-98 transition">
+                    <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
+                    
+                    <div class="flex flex-col justify-start mb-2 relative z-10">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold whitespace-nowrap">下一站目的地</div>
+                            <div id="dash-next-time" class="text-xs text-yellow-500 font-bold tracking-wider font-num"></div>
+                        </div>
+                        <h3 class="text-xl text-white font-bold truncate w-full" id="dash-next-event">載入中...</h3>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-3 relative z-10">
+                         <button onclick="quickTaxi()" class="flex-1 bg-yellow-600/20 border border-yellow-600/50 text-yellow-500 text-xs py-2 rounded-xl flex items-center justify-center gap-1 font-black tracking-wider hover:bg-yellow-600 hover:text-black transition">
+                            <i data-lucide="car-front" size="14"></i> TAXI CARD
+                         </button>
+                         <button onclick="quickMap()" class="flex-1 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs py-2 rounded-xl flex items-center justify-center gap-1 tracking-wider hover:bg-zinc-700 transition font-bold">
+                            <i data-lucide="map-pin" size="14"></i> G-MAP
+                         </button>
+                    </div>
+                </div>
+
+                <!-- Hotel Info (Unified Design) -->
+                <div onclick="openMap('Soi Pratumnak soi 6')" class="glass rounded-[2rem] p-6 col-span-2 border-l-2 border-l-blue-500 relative overflow-hidden group cursor-pointer shadow-xl min-h-[100px] flex items-center border border-white/5">
+                     <div class="absolute left-0 top-0 bottom-0 w-24 bg-blue-900/20 blur-[40px]"></div>
+                     <div class="absolute -right-8 -bottom-8 text-white/5 rotate-12 group-hover:rotate-0 transition duration-700">
+                         <i data-lucide="hotel" size="120"></i>
+                     </div>
+                     <div class="relative z-10 flex items-center justify-between w-full">
+                         <div class="flex-1 min-w-0">
+                             <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-1 h-3 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                                <div class="text-[10px] uppercase tracking-[0.25em] text-blue-400/80 font-bold font-num">PATTAYA HOTEL</div>
+                             </div>
+                             <h3 class="text-xl text-white font-bold font-serif tracking-wide truncate group-hover:text-blue-400 transition-colors">Pratumnak Soi 6</h3>
+                             <div class="text-xs text-zinc-500 mt-0.5 font-num tracking-wider flex items-center gap-1">
+                                <i data-lucide="map-pin" size="10"></i> South Pattaya
+                             </div>
+                         </div>
+                         <div class="w-10 h-10 rounded-full bg-zinc-900/50 border border-white/10 flex items-center justify-center text-zinc-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all duration-300 shadow-lg backdrop-blur-md ml-4 flex-shrink-0">
+                             <i data-lucide="map-pin" size="18" class="group-hover:scale-110 transition-transform"></i>
+                         </div>
+                     </div>
+                </div>
+
+                <!-- Tools Section -->
+                <div class="col-span-2 mt-2">
+                    <h3 class="text-sm text-zinc-400 mb-3 tracking-widest font-bold">在地工具</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="https://translate.google.com/?sl=th&tl=zh-TW" target="_blank" class="glass p-4 rounded-2xl flex flex-col justify-center gap-2 group active:scale-95 transition border border-green-500/20 hover:bg-green-900/20">
+                            <div class="flex items-center gap-2 text-green-400 font-bold"><i data-lucide="languages" size="18"></i> Translate</div>
+                            <div class="text-[10px] text-zinc-500 font-bold">泰語翻譯</div>
+                        </a>
+                        <a href="https://www.grab.com/th/en/transport/" target="_blank" class="glass p-4 rounded-2xl flex flex-col justify-center gap-2 group active:scale-95 transition border border-yellow-500/20 hover:bg-yellow-900/20">
+                            <div class="flex items-center gap-2 text-yellow-500 font-bold"><i data-lucide="car-taxi-front" size="18"></i> Grab</div>
+                            <div class="text-[10px] text-zinc-500 font-bold">叫車/外送</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Emergency -->
+                <div class="glass p-5 rounded-[1.5rem] col-span-2">
+                    <h3 class="text-sm text-zinc-400 mb-3 tracking-widest font-bold">緊急聯絡 (泰國)</h3>
+                    <div class="flex gap-3">
+                        <a href="tel:1155" class="flex-1 bg-zinc-800 py-3 rounded-xl text-center text-xs text-zinc-300 hover:bg-zinc-700 font-bold border border-zinc-700">觀光警 1155</a>
+                        <a href="tel:1669" class="flex-1 bg-zinc-800 py-3 rounded-xl text-center text-xs text-zinc-300 hover:bg-zinc-700 font-bold border border-zinc-700">救護 1669</a>
+                    </div>
+                </div>
+                
+                <!-- Memo -->
+                <div class="glass p-5 rounded-[1.5rem] col-span-2">
+                    <h3 class="text-sm text-zinc-400 mb-3 tracking-widest font-bold">共用備忘錄</h3>
+                    <textarea id="global-memo" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl p-4 text-white text-sm h-32 focus:border-yellow-600 outline-none placeholder-zinc-700 font-bold" placeholder="預約代號、重要筆記..."></textarea>
+                </div>
+            </div>
+            
+            <div class="pb-24"></div>
+        </div>
+
+        <!-- 1. Itinerary -->
+        <div id="view-itinerary" class="tab-content space-y-6">
+            <h2 class="text-3xl font-bold text-white tracking-widest">行程規劃</h2>
+            
+            <div class="sticky top-0 z-10 glass rounded-2xl p-2 mx-[-6px] mb-4 backdrop-blur-xl">
+                <div class="flex justify-between items-center px-1" id="date-tabs"></div>
+            </div>
+            
+            <div id="itinerary-list" class="space-y-0 relative pl-4 pb-24">
+                <div class="absolute left-[23px] top-2 bottom-2 w-[1px] bg-gradient-to-b from-transparent via-zinc-800 to-transparent"></div>
+            </div>
+        </div>
+
+        <!-- 2. Packing -->
+        <div id="view-packing" class="tab-content space-y-6">
+            <h2 class="text-3xl font-bold text-white tracking-widest">行李籌備</h2>
+            
+            <div class="glass rounded-[2rem] p-6 flex items-center gap-6 border-t border-white/10">
+                <div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                    <svg class="transform -rotate-90 w-24 h-24">
+                        <circle cx="48" cy="48" r="42" stroke="#1f1f1f" stroke-width="3" fill="transparent" />
+                        <circle id="pack-ring" cx="48" cy="48" r="42" stroke="url(#grad1)" stroke-width="3" fill="transparent" stroke-dasharray="264" stroke-dashoffset="264" class="transition-all duration-1000 ease-out" stroke-linecap="round" />
+                        <defs><linearGradient id="grad1"><stop offset="0%" stop-color="#b38728"/><stop offset="100%" stop-color="#fcf6ba"/></linearGradient></defs>
+                    </svg>
+                    <span id="pack-percent" class="absolute text-lg font-black text-white font-num">0%</span>
+                </div>
+                <div>
+                    <div class="text-lg text-white font-bold tracking-wide">打包進度</div>
+                    <div class="text-xs text-zinc-500 mt-1 leading-relaxed font-bold">記得帶防曬、泳衣與快樂的心。</div>
+                </div>
+            </div>
+            <div id="packing-list" class="space-y-5 pb-24"></div>
+        </div>
+
+        <!-- 3. Expenses -->
+        <div id="view-expenses" class="tab-content space-y-6">
+            <h2 class="text-3xl font-bold text-white tracking-widest">懶人分帳</h2>
+            
+            <div class="w-full aspect-[1.7/1] rounded-[2rem] bg-gradient-to-bl from-[#1a1a1a] via-black to-[#0a0a0a] border border-white/10 p-7 relative overflow-hidden shadow-2xl flex flex-col justify-between">
+                <div class="absolute -right-10 -top-10 w-48 h-48 bg-yellow-600/10 rounded-full blur-3xl"></div>
+                <div class="flex justify-between items-start z-10">
+                    <i data-lucide="nfc" class="text-zinc-600 rotate-90" size="28"></i>
+                    <span class="text-[10px] text-yellow-600/90 tracking-[0.3em] border border-yellow-600/30 px-3 py-1 rounded font-bold font-num">TRIP CARD</span>
+                </div>
+                <div class="z-10 pl-1">
+                    <div class="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mb-2 font-bold">Total Expenses</div>
+                    <div id="total-expense" class="text-4xl font-bold text-white tracking-tight text-shadow-sm font-num">NT$ 0</div>
+                </div>
+                <div class="flex justify-between items-end z-10">
+                    <div class="text-[10px] text-zinc-500 tracking-[0.3em] font-bold font-num">**** 2025</div>
+                    <div class="text-xs text-white/70 italic tracking-wider font-bold">Group Splitting</div>
+                </div>
+            </div>
+
+            <div class="glass rounded-t-[2.5rem] min-h-[40vh] p-8 -mt-6 border-t border-white/5 relative z-0">
+                <div class="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-8"></div>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-sm font-bold text-zinc-300 tracking-wider">分帳明細</h3>
+                    <button onclick="toggleSettlement()" class="text-[10px] text-yellow-600 uppercase tracking-wider hover:text-white transition bg-yellow-600/10 px-3 py-1 rounded-full font-bold">一鍵結算</button>
+                </div>
+                <div id="settlement-view" class="hidden mb-6 bg-[#0a0a0a] rounded-2xl p-5 border border-zinc-800 shadow-inner">
+                    <div id="split-result" class="text-sm text-zinc-300 space-y-2 font-bold leading-loose text-center"></div>
+                </div>
+                <div id="expense-list" class="space-y-4 pb-24"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Navigation Dock -->
+    <nav class="fixed bottom-8 left-6 right-6 h-20 glass-dock rounded-[2.5rem] flex justify-between items-center px-6 z-40">
+        <button onclick="switchTab('view-dashboard', this)" class="nav-btn text-yellow-500 transition-transform active:scale-90 flex flex-col items-center gap-1.5 w-12 group">
+            <i data-lucide="layout-grid" size="22" class="group-hover:drop-shadow-[0_0_5px_rgba(212,175,55,0.8)]"></i>
+            <span class="text-[9px] font-bold tracking-widest">首頁</span>
+        </button>
+        <button onclick="switchTab('view-itinerary', this)" class="nav-btn text-zinc-500 transition-transform active:scale-90 flex flex-col items-center gap-1.5 w-12 hover:text-zinc-300">
+            <i data-lucide="calendar" size="22"></i>
+            <span class="text-[9px] font-bold tracking-widest">行程</span>
+        </button>
+        <button onclick="openActionSheet()" class="btn-press -mt-10 w-16 h-16 bg-gradient-to-tr from-[#8a7020] via-[#D4AF37] to-[#F4E29F] rounded-[1.5rem] rotate-45 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.3)] border border-white/20 z-50 transition-all hover:scale-105 active:scale-95">
+            <i data-lucide="plus" class="text-black -rotate-45" size="32" stroke-width="2.5"></i>
+        </button>
+        <button onclick="switchTab('view-expenses', this)" class="nav-btn text-zinc-500 transition-transform active:scale-90 flex flex-col items-center gap-1.5 w-12 hover:text-zinc-300">
+            <i data-lucide="credit-card" size="22"></i>
+            <span class="text-[9px] font-bold tracking-widest">帳務</span>
+        </button>
+        <button onclick="switchTab('view-packing', this)" class="nav-btn text-zinc-500 transition-transform active:scale-90 flex flex-col items-center gap-1.5 w-12 hover:text-zinc-300">
+            <i data-lucide="backpack" size="22"></i>
+            <span class="text-[9px] font-bold tracking-widest">行李</span>
+        </button>
+    </nav>
+
+    <!-- Taxi Mode & Action Sheet & Modals -->
+    <div id="taxi-overlay" class="fixed inset-0 bg-black z-[100] hidden flex flex-col justify-center items-center p-8 text-center">
+        <button onclick="closeTaxiMode()" class="absolute top-8 right-8 text-zinc-500 p-4"><i data-lucide="x" size="32"></i></button>
+        <div class="text-yellow-600 text-sm tracking-[0.3em] font-black mb-8 animate-pulse">TAXI MODE</div>
+        <!-- 泰文提示 -->
+        <div class="text-zinc-400 text-lg mb-2 font-local font-bold">พี่ครับ, ไปที่นี่ครับ</div>
+        <div id="taxi-local-title" class="text-white text-4xl font-black mb-6 font-local leading-tight px-2"></div>
+        <div id="taxi-local-addr" class="text-zinc-300 text-xl font-local font-bold leading-relaxed border-t border-zinc-800 pt-6 mt-2 px-2"></div>
+        <div id="taxi-cht-title" class="text-zinc-600 text-sm mt-12 font-bold tracking-widest"></div>
+    </div>
+
+    <div id="action-sheet-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeActionSheet()"></div>
+    <div id="action-sheet" class="fixed bottom-0 left-0 right-0 bg-[#0f0f0f] rounded-t-[3rem] p-8 z-50 transform translate-y-full transition-transform duration-300 border-t border-white/10 shadow-2xl">
+        <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-8"></div>
+        <div class="grid grid-cols-3 gap-6 mb-8">
+            <button onclick="window.openAddEvent()" class="flex flex-col items-center gap-3 p-5 bg-zinc-900/80 rounded-[1.5rem] border border-zinc-800 active:scale-95 transition">
+                <div class="w-14 h-14 rounded-full bg-blue-900/20 text-blue-400 flex items-center justify-center"><i data-lucide="map-pin" size="24"></i></div>
+                <span class="text-xs text-zinc-300 font-bold">新行程</span>
+            </button>
+            <button onclick="openSubModal('modal-expense')" class="flex flex-col items-center gap-3 p-5 bg-zinc-900/80 rounded-[1.5rem] border border-zinc-800 active:scale-95 transition">
+                <div class="w-14 h-14 rounded-full bg-green-900/20 text-green-400 flex items-center justify-center"><i data-lucide="receipt" size="24"></i></div>
+                <span class="text-xs text-zinc-300 font-bold">記一筆</span>
+            </button>
+            <button onclick="openSubModal('modal-packing')" class="flex flex-col items-center gap-3 p-5 bg-zinc-900/80 rounded-[1.5rem] border border-zinc-800 active:scale-95 transition">
+                <div class="w-14 h-14 rounded-full bg-purple-900/20 text-purple-400 flex items-center justify-center"><i data-lucide="backpack" size="24"></i></div>
+                <span class="text-xs text-zinc-300 font-bold">新增行李</span>
+            </button>
+        </div>
+        <button onclick="closeActionSheet()" class="w-full py-4 text-zinc-500 text-sm tracking-widest font-bold">取消</button>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 z-[60] hidden flex items-center justify-center px-5 bg-black/80 backdrop-blur-xl">
+        <div id="modal-itinerary" class="hidden w-full max-w-sm glass rounded-[2rem] p-7 shadow-2xl slide-up max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h3 id="modal-itinerary-title" class="text-xl text-white font-bold">新增行程</h3>
+                <button id="btn-delete-event" onclick="deleteCurrentEvent()" class="text-red-500 hidden"><i data-lucide="trash-2" size="20"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 gap-3"> 
+                    <div>
+                        <label class="block text-xs text-zinc-500 mb-1 font-bold ml-1">日期</label>
+                        <div class="w-full bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden flex items-center h-[56px]">
+                            <input type="date" id="evt-date" class="block w-full h-full bg-transparent pl-4 pr-2 text-white font-bold z-10 relative">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-zinc-500 mb-1 font-bold ml-1">時間</label>
+                        <div class="w-full bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden flex items-center h-[56px]">
+                            <input type="time" id="evt-time" class="block w-full h-full bg-transparent pl-4 pr-12 text-white font-bold z-10 relative">
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="text" id="evt-title" placeholder="地點名稱 (中文)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none placeholder-zinc-700 font-bold">
+                <input type="text" id="evt-local-title" placeholder="地點名稱 (泰文 - 用於計程車)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none placeholder-zinc-700 font-bold font-local">
+                <input type="text" id="evt-local-addr" placeholder="詳細地址 (泰文 - 用於導航)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none placeholder-zinc-700 font-bold font-local">
+                <textarea id="evt-memo" placeholder="備忘錄 (預約號碼/低消...)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none placeholder-zinc-700 h-24 font-bold"></textarea>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeSubModal()" class="flex-1 py-3.5 rounded-xl bg-zinc-800 text-zinc-400 font-bold">取消</button>
+                <button onclick="window.saveEvent()" class="flex-1 py-3.5 rounded-xl bg-yellow-600 text-black font-black">儲存</button>
+            </div>
+        </div>
+
+        <div id="modal-expense" class="hidden w-full max-w-sm glass rounded-[2rem] p-7 shadow-2xl slide-up">
+            <h3 class="text-xl text-white font-bold mb-6 border-b border-white/10 pb-4">新增支出</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-zinc-500 mb-1 font-bold ml-1">付款人</label>
+                    <div class="relative">
+                        <select id="exp-payer" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none font-bold appearance-none">
+                            <!-- options populated by JS -->
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-zinc-500">
+                            <i data-lucide="chevron-down" size="16"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-zinc-500 mb-1 font-bold ml-1">泰銖 (THB)</label>
+                        <input type="number" id="exp-amount-local" placeholder="฿" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none font-bold font-num" oninput="convertExpense('local')">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-zinc-500 mb-1 font-bold ml-1">台幣 (TWD)</label>
+                        <input type="number" id="exp-amount" placeholder="$" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none font-bold font-num" oninput="convertExpense('twd')">
+                    </div>
+                </div>
+                <div class="text-[10px] text-zinc-500 text-right -mt-2 pr-1 font-num">匯率參考: 0.9 (THB:TWD)</div>
+
+                <input type="text" id="exp-desc" placeholder="項目 (例如: 按摩)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none font-bold">
+                <div class="bg-zinc-900/50 p-4 rounded-xl border border-zinc-700">
+                    <label class="text-xs text-zinc-500 mb-2 block font-bold">分攤成員</label>
+                    <div class="grid grid-cols-2 gap-2" id="exp-members"></div>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeSubModal()" class="flex-1 py-3.5 rounded-xl bg-zinc-800 text-zinc-400 font-bold">取消</button>
+                <button onclick="window.addExpense()" class="flex-1 py-3.5 rounded-xl bg-yellow-600 text-black font-black">儲存</button>
+            </div>
+        </div>
+
+        <div id="modal-packing" class="hidden w-full max-w-sm glass rounded-[2rem] p-7 shadow-2xl slide-up">
+            <h3 class="text-xl text-white font-bold mb-6 border-b border-white/10 pb-4">新增行李</h3>
+            <div class="space-y-4">
+                <select id="pack-cat" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none font-bold">
+                    <option value="證件金錢">證件金錢</option>
+                    <option value="電子產品">電子產品</option>
+                    <option value="衣物">衣物</option>
+                    <option value="盥洗/藥品">盥洗/藥品</option>
+                    <option value="其他">其他</option>
+                </select>
+                <input type="text" id="pack-item" placeholder="物品名稱" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white outline-none font-bold">
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeSubModal()" class="flex-1 py-3.5 rounded-xl bg-zinc-800 text-zinc-400 font-bold">取消</button>
+                <button onclick="window.addPackItem()" class="flex-1 py-3.5 rounded-xl bg-yellow-600 text-black font-black">儲存</button>
+            </div>
+        </div>
+
+        <div id="modal-members" class="hidden w-full max-w-sm glass rounded-[2rem] p-7 shadow-2xl slide-up">
+            <h3 class="text-xl text-white font-bold mb-6 border-b border-white/10 pb-4">人員管理</h3>
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="new-member-name" placeholder="輸入名字 (如: 小明)" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-white outline-none font-bold">
+                    <button onclick="window.addMember()" class="bg-yellow-600 text-black px-4 rounded-xl font-bold">新增</button>
+                </div>
+                <div id="members-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeSubModal()" class="w-full py-3.5 rounded-xl bg-zinc-800 text-zinc-400 font-bold">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Updated Firebase Config for bkk2025
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7mtHwRbljo5xQncHOh6KzoO0UUJRmWpk",
+            authDomain: "bkk2025.firebaseapp.com",
+            projectId: "bkk2025",
+            storageBucket: "bkk2025.firebasestorage.app",
+            messagingSenderId: "689779122336",
+            appId: "1:689779122336:web:25b1045942086de67d29c5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        // Change trip ID to separate from Seoul version
+        const TRIP_ID = "trip_data_bkk_pattaya_2025_v1"; 
+
+        // 預設資料：曼谷+芭達雅 2025
+        const defaultData = {
+            itinerary: {
+                "2025-12-13": [
+                    { time: "13:30", title: "素萬那普機場 (BKK)", localTitle: "ท่าอากาศยานสุวรรณภูมิ", localAddr: "999 หมู่ 1 หนองปรือ บางพลี สมุทรปราการ", memo: "Sawasdee Krub! 停留1小時。出關後準備前往芭達雅。" },
+                    { time: "16:08", title: "Check-in: Pratumnak Soi 6", localTitle: "ซอยพระตำหนัก 6", localAddr: "352/222 Soi Phratamnuk 6, Pattaya City, Bang Lamung District", memo: "抵達芭達雅住宿。休息1小時後出發。" },
+                    { time: "17:08", title: "Cave Beach Club", localTitle: "Cave Beach Club", localAddr: "Soi Najomtien 10, Najomtien, Sattahip District, Chon Buri", memo: "網美海景餐廳，必拍洞穴風格裝潢。" },
+                    { time: "17:30", title: "Terminal 21 Pattaya", localTitle: "เทอร์มินอล 21 พัทยา", localAddr: "456, 777, 777/1 Pattaya Sai Song Rd, Nong Prue, Bang Lamung", memo: "逛街+晚餐。有巴黎鐵塔跟飛機可以拍。" },
+                    { time: "18:00", title: "芭達雅飛機夜市", localTitle: "ตลาดรันเวย์ พัทยา", localAddr: "Pattaya Sai Song Rd, Pattaya City (Runway Street Food)", memo: "就在 Terminal 21 對面，有真飛機的夜市。" },
+                    { time: "19:00", title: "芭達雅步行街 (Walking St)", localTitle: "ถนนคนเดินพัทยา", localAddr: "Walking St, Pattaya City, Bang Lamung District", memo: "體驗芭達雅最熱鬧的夜生活。" }
+                ],
+                "2025-12-14": [
+                    { time: "10:00", title: "住宿出發", localTitle: "", localAddr: "", memo: "352, 222 Soi Pratumnak soi 6" },
+                    { time: "11:07", title: "午餐：Kai Yok Krok Pattaya", localTitle: "ไก่ยกครก พัทยา", localAddr: "Thepprasit Rd, Muang Pattaya, Bang Lamung District", memo: "著名的涼拌木瓜與烤雞餐廳。" },
+                    { time: "12:00", title: "Terminal 21 Pattaya", localTitle: "เทอร์มินอล 21 พัทยา", localAddr: "North Pattaya Road", memo: "吹冷氣補貨。" },
+                    { time: "13:07", title: "芭達雅海灘 (Pattaya Beach)", localTitle: "หาดพัทยา", localAddr: "Pattaya Beach Road", memo: "海邊散步、玩水，停留3小時。" },
+                    { time: "17:00", title: "The Oxygen Beachfront Oasis", localTitle: "The Oxygen Pattaya", localAddr: "400/1098 Moo 12, Phratamnuk Road, Bang Lamung", memo: "超美海景餐廳晚餐，氣氛很好。" },
+                    { time: "19:00", title: "Bali Hai Pier", localTitle: "แหลมบาลีฮาย", localAddr: "South Pattaya Rd, Pattaya City", memo: "前往碼頭準備登船。" },
+                    { time: "19:30", title: "東方嘉年華海天盛筵", localTitle: "โอเรียนเต็ล คาร์นิวัล (Ocean Sky)", localAddr: "Bali Hai Pier", memo: "海上遊輪派對/人妖秀，停留3小時。" }
+                ],
+                "2025-12-15": [
+                    { time: "11:00", title: "退房出發", localTitle: "", localAddr: "", memo: "352, 222 Soi Pratumnak soi 6" },
+                    { time: "12:07", title: "The Sky Gallery", localTitle: "The Sky Gallery", localAddr: "400 Moo 12, Rajchawaroon Rd, Phratamnuk Hill", memo: "懸崖海景咖啡廳，吃午餐。" },
+                    { time: "14:05", title: "Grand Canyon Chonburi", localTitle: "แกรนด์แคนยอน ชลบุรี", localAddr: "Huai Kapi, Mueang Chon Buri District", memo: "春武里大峽谷，拍照景點。" },
+                    { time: "15:16", title: "Uncloud Coffee", localTitle: "Uncloud Coffee", localAddr: "Khao Lam Rd, Mueang Chon Buri District", memo: "極光造型的知名咖啡廳。" },
+                    { time: "16:28", title: "邦盛海灘 (Bang Saen Beach)", localTitle: "หาดบางแสน", localAddr: "Bang Saen, Chon Buri", memo: "泰國當地人最愛的海灘，停留3小時。" },
+                    { time: "19:28", title: "Check-in: Lumen Bangkok", localTitle: "โรงแรมลูเมน กรุงเทพ ศรีนครินทร์", localAddr: "90/9 Srinagarindra Rd, Nong Bon, Prawet, Bangkok", memo: "Lumen Bangkok Srinakarin。" },
+                    { time: "20:54", title: "喬德夜市 (JODD FAIRS)", localTitle: "จ๊อดแฟร์ พระราม 9", localAddr: "Rama IX Rd, Huai Khwang, Bangkok", memo: "必吃火山排骨、水果西施。" },
+                    { time: "21:54", title: "Let's Relax Spa (Phaya Thai)", localTitle: "Let's Relax Spa Phaya Thai", localAddr: "Phaya Thai Rd, Ratchathewi, Bangkok", memo: "按摩放鬆1小時。" },
+                    { time: "22:54", title: "回飯店休息", localTitle: "", localAddr: "", memo: "Lumen Bangkok Srinakarin" }
+                ],
+                "2025-12-16": [
+                    { time: "10:00", title: "飯店出發", localTitle: "", localAddr: "", memo: "Lumen Bangkok Srinakarin" },
+                    { time: "11:00", title: "早午餐：邢泰記", localTitle: "โกปี๊เฮี้ยะไถ่กี่", localAddr: "Siri Phong Rd, Samran Rat, Phra Nakhon (Near Giant Swing)", memo: "Kope Hya Tai Kee，傳統泰式早餐/咖啡。" },
+                    { time: "13:00", title: "鄭王廟 (Wat Arun)", localTitle: "วัดอรุณราชวราราม", localAddr: "158 Thanon Wang Doem, Wat Arun", memo: "穿泰服拍照，停留2.5小時。" },
+                    { time: "15:40", title: "臥佛寺 (Wat Pho)", localTitle: "วัดโพธิ์", localAddr: "2 Sanam Chai Rd, Phra Borom Maha Ratchawang", memo: "看巨大臥佛。" },
+                    { time: "16:52", title: "曼谷大皇宮", localTitle: "พระบรมมหาราชวัง", localAddr: "Na Phra Lan Rd, Phra Borom Maha Ratchawang", memo: "泰國最重要的皇宮。" },
+                    { time: "17:55", title: "玉佛寺 (Wat Phra Kaeo)", localTitle: "วัดพระแก้ว", localAddr: "Na Phra Lan Rd", memo: "就在大皇宮內。" },
+                    { time: "19:15", title: "晚餐：Moo Yang Mae Sumontha", localTitle: "หมูย่างน้ำผึ้งแม่สุมณฑา", localAddr: "Chatuchak Market, Section 22, Soi 4", memo: "著名的蜜汁烤豬肉。" },
+                    { time: "20:17", title: "恰圖恰市集 (Chatuchak)", localTitle: "ตลาดนัดจตุจักร", localAddr: "Kamphaeng Phet 2 Rd, Chatuchak", memo: "【注意】週二通常只有植物市集或部分店家營業，非週末全面開放時段。" },
+                    { time: "23:17", title: "Let's Relax Spa (Phaya Thai)", localTitle: "Let's Relax Spa Phaya Thai", localAddr: "Phaya Thai Rd", memo: "按摩1小時。" },
+                    { time: "00:17", title: "考山路 (Khao San Road)", localTitle: "ถนนข้าวสาร", localAddr: "Khaosan Rd, Talat Yot, Phra Nakhon", memo: "背包客天堂，酒吧街。" }
+                ],
+                "2025-12-17": [
+                    { time: "08:00", title: "飯店出發", localTitle: "", localAddr: "", memo: "Lumen Bangkok Srinakarin" },
+                    { time: "09:00", title: "Big C Ratchadamri", localTitle: "บิ๊กซี ราชดำริ", localAddr: "97/11 Ratchadamri Rd, Lumphini, Pathum Wan", memo: "最後採買伴手禮。" },
+                    { time: "10:05", title: "四面佛 (Erawan Shrine)", localTitle: "ศาลท้าวมหาพรหม", localAddr: "Ratchadamri Rd, Lumphini, Pathum Wan", memo: "參拜四面佛，就在 Big C 附近。" }
+                ]
+            },
+            packing: [
+                {id: 1, cat: '證件金錢', name: '護照 (有效期限6個月以上)', checked: false},
+                {id: 2, cat: '證件金錢', name: '泰簽 / 免簽證明', checked: false},
+                {id: 3, cat: '證件金錢', name: '泰銖現金 (小費好用)', checked: false},
+                {id: 4, cat: '證件金錢', name: '信用卡 / 網卡', checked: false},
+                {id: 5, cat: '電子產品', name: '轉接頭 (泰國雙孔與台灣同)', checked: false},
+                {id: 6, cat: '電子產品', name: '行動電源 (需手提)', checked: false},
+                {id: 7, cat: '盥洗保養', name: '防曬乳 (非常重要!)', checked: false},
+                {id: 8, cat: '盥洗保養', name: '防蚊液', checked: false},
+                {id: 9, cat: '衣物穿搭', name: '泳衣 / 泳褲', checked: false},
+                {id: 10, cat: '衣物穿搭', name: '涼鞋 / 拖鞋', checked: false},
+                {id: 11, cat: '衣物穿搭', name: '薄外套 (百貨冷氣強)', checked: false},
+                {id: 12, cat: '衣物穿搭', name: '帽子 / 墨鏡', checked: false},
+                {id: 13, cat: '藥品雜物', name: '腸胃藥 (以防萬一)', checked: false}
+            ],
+            expenses: [],
+            memo: "",
+            members: ["我"]
+        };
+
+        let appData = defaultData;
+        let currentDay = "2025-12-13";
+        let editingContext = null;
+
+        async function init() {
+            try {
+                await signInAnonymously(auth);
+                onSnapshot(doc(db, "trips", TRIP_ID), (docSnap) => {
+                    if (docSnap.exists()) {
+                        appData = docSnap.data();
+                    } else {
+                        saveDataToFirebase();
+                    }
+                    renderAll();
+                    // Weather for Pattaya (Day 1-2 default)
+                    fetchWeather();
+                    
+                    document.getElementById('loading-screen').style.opacity = 0;
+                    setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
+                });
+            } catch (error) {
+                console.error("Firebase Error:", error);
+                document.getElementById('loading-screen').style.display = 'none';
+            }
+        }
+
+        // Real-time Weather Fetcher for Pattaya (Lat: 12.92, Lon: 100.88)
+        async function fetchWeather() {
+            try {
+                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=12.9276&longitude=100.8771&current_weather=true&timezone=Asia%2FBangkok');
+                const data = await res.json();
+                if(data && data.current_weather) {
+                    const temp = Math.round(data.current_weather.temperature);
+                    const code = data.current_weather.weathercode;
+                    let desc = "晴";
+                    
+                    // Simple WMO code mapping
+                    if (code >= 1 && code <= 3) { desc = "多雲"; }
+                    else if (code >= 51 && code <= 67) { desc = "雨"; }
+                    else if (code >= 95) { desc = "雷雨"; }
+                    
+                    document.getElementById('weather-temp').innerText = `${temp}°C`;
+                    document.getElementById('weather-desc').innerHTML = `${desc} <i data-lucide="external-link" size="10" class="opacity-50"></i>`;
+                }
+            } catch (e) {
+                console.error("Weather fetch failed", e);
+            }
+        }
+
+        async function saveDataToFirebase() {
+            try { await setDoc(doc(db, "trips", TRIP_ID), appData); } catch (e) { console.error("Save failed: ", e); }
+        }
+
+        window.saveData = saveDataToFirebase;
+
+        window.addMember = () => {
+            const name = document.getElementById('new-member-name').value.trim();
+            if(name && !appData.members.includes(name)) {
+                appData.members.push(name);
+                document.getElementById('new-member-name').value = '';
+                saveDataToFirebase();
+            }
+        };
+
+        // Set "Me" function
+        window.setAsMe = (name) => {
+            localStorage.setItem('bkk_travel_me', name); 
+            updateDashboard();
+            window.renderMembers(); 
+        };
+
+        window.removeMember = (name) => {
+            if(confirm(`確定移除 ${name}?`)) {
+                appData.members = appData.members.filter(m => m !== name);
+                saveDataToFirebase();
+            }
+        };
+
+        window.saveEvent = () => {
+            const date = document.getElementById('evt-date').value;
+            const time = document.getElementById('evt-time').value;
+            const title = document.getElementById('evt-title').value;
+            const localTitle = document.getElementById('evt-local-title').value;
+            const localAddr = document.getElementById('evt-local-addr').value;
+            const memo = document.getElementById('evt-memo').value;
+
+            if(date && time && title) {
+                if (editingContext) {
+                     appData.itinerary[editingContext.date].splice(editingContext.index, 1);
+                }
+                if (!appData.itinerary[date]) appData.itinerary[date] = [];
+
+                appData.itinerary[date].push({time, title, localTitle, localAddr, memo});
+                appData.itinerary[date].sort((a,b) => a.time.localeCompare(b.time));
+                
+                saveDataToFirebase();
+                currentDay = date; 
+                closeSubModal();
+                renderItinerary(); 
+            } else {
+                alert("請填寫日期、時間和名稱");
+            }
+        };
+
+        window.deleteCurrentEvent = () => {
+            if(editingContext && confirm('確定要刪除此行程？')) {
+                appData.itinerary[editingContext.date].splice(editingContext.index, 1);
+                saveDataToFirebase();
+                closeSubModal();
+            }
+        };
+        
+        window.openEditEvent = (index) => {
+            const event = appData.itinerary[currentDay][index];
+            if (!event) return;
+
+            editingContext = { date: currentDay, index: index };
+            
+            document.getElementById('modal-itinerary-title').innerText = "編輯行程";
+            document.getElementById('btn-delete-event').classList.remove('hidden');
+            
+            document.getElementById('evt-date').value = currentDay;
+            document.getElementById('evt-time').value = event.time;
+            document.getElementById('evt-title').value = event.title;
+            document.getElementById('evt-local-title').value = event.localTitle || "";
+            document.getElementById('evt-local-addr').value = event.localAddr || "";
+            document.getElementById('evt-memo').value = event.memo || "";
+            
+            openSubModal('modal-itinerary', true); 
+        };
+
+        // Explicitly Open Add Event
+        window.openAddEvent = () => {
+            editingContext = null;
+            document.getElementById('modal-itinerary-title').innerText = "新增行程";
+            document.getElementById('btn-delete-event').classList.add('hidden');
+            document.getElementById('evt-date').value = currentDay;
+            document.getElementById('evt-time').value = "";
+            document.getElementById('evt-title').value = "";
+            document.getElementById('evt-local-title').value = "";
+            document.getElementById('evt-local-addr').value = "";
+            document.getElementById('evt-memo').value = "";
+            openSubModal('modal-itinerary', true);
+        };
+
+        window.addExpense = () => {
+            const payer = document.getElementById('exp-payer').value;
+            const amount = document.getElementById('exp-amount').value;
+            const desc = document.getElementById('exp-desc').value;
+            const checkboxes = document.querySelectorAll('#exp-members input:checked');
+            const selectedMembers = Array.from(checkboxes).map(cb => cb.value);
+            if(payer && amount && selectedMembers.length > 0) {
+                appData.expenses.push({payer, amount, desc, members: selectedMembers});
+                saveDataToFirebase();
+                closeSubModal();
+            } else {
+                alert("請填寫完整資訊並選擇分攤成員");
+            }
+        };
+
+        window.deleteExp = (i) => {
+            appData.expenses.splice(i, 1);
+            saveDataToFirebase();
+        };
+
+        window.togglePack = (id) => {
+            const item = appData.packing.find(i => i.id === id);
+            if(item) { item.checked = !item.checked; saveDataToFirebase(); }
+        };
+
+        window.addPackItem = () => {
+            const cat = document.getElementById('pack-cat').value;
+            const name = document.getElementById('pack-item').value;
+            if(name) {
+                appData.packing.push({id: Date.now(), cat, name, checked: false});
+                saveDataToFirebase();
+                closeSubModal();
+            }
+        };
+
+        window.deletePack = (id) => {
+            appData.packing = appData.packing.filter(i => i.id !== id);
+            saveDataToFirebase();
+        };
+
+        window.setDay = (d) => {
+            currentDay = d;
+            renderItinerary();
+        };
+
+        // Changed logic for THB <-> TWD
+        window.convertExpense = (source) => {
+            const rate = 0.9; // 1 THB = 0.9 TWD (Approx)
+            const localEl = document.getElementById('exp-amount-local');
+            const twdEl = document.getElementById('exp-amount');
+            
+            if(source === 'local') {
+                const val = parseFloat(localEl.value);
+                if(!isNaN(val)) {
+                    twdEl.value = Math.round(val * rate);
+                } else {
+                    twdEl.value = '';
+                }
+            } else {
+                const val = parseFloat(twdEl.value);
+                if(!isNaN(val)) {
+                    localEl.value = Math.round(val / rate);
+                } else {
+                    localEl.value = '';
+                }
+            }
+        }
+
+        window.renderMembers = () => {
+            const list = document.getElementById('members-list');
+            const currentMe = localStorage.getItem('bkk_travel_me');
+            
+            if (list) {
+                list.innerHTML = appData.members.map(m => `
+                    <div class="flex justify-between items-center bg-zinc-800 p-3 rounded-lg border ${m === currentMe ? 'border-yellow-600' : 'border-transparent'}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-white font-bold">${m}</span>
+                            ${m !== currentMe ? `<button onclick="window.setAsMe('${m}')" class="text-xs bg-zinc-700 px-2 py-1 rounded text-zinc-300 hover:bg-yellow-600 hover:text-black transition">這是我</button>` : '<span class="text-xs text-yellow-500 font-bold"> (我)</span>'}
+                        </div>
+                        <button onclick="window.removeMember('${m}')" class="text-red-500"><i data-lucide="trash-2" size="16"></i></button>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            }
+        }
+
+        window.populatePayers = () => {
+            const select = document.getElementById('exp-payer');
+            if (select) {
+                select.innerHTML = appData.members.map(m => `<option value="${m}">${m}</option>`).join('');
+            }
+        }
+
+        window.populateMembers = () => {
+            const container = document.getElementById('exp-members');
+            if (container) {
+                container.innerHTML = appData.members.map(m => `
+                    <label class="flex items-center gap-2 bg-black/40 p-2 rounded cursor-pointer">
+                        <input type="checkbox" value="${m}" checked class="accent-yellow-600">
+                        <span class="text-xs text-zinc-300 font-bold">${m}</span>
+                    </label>
+                `).join('');
+            }
+        }
+
+        window.updateDashboard = () => {
+            const myName = localStorage.getItem('bkk_travel_me');
+            const greetingNameEl = document.getElementById('greeting-name');
+            const greetingHintEl = document.getElementById('greeting-hint');
+            
+            if(greetingNameEl) {
+                if(myName) {
+                     greetingNameEl.innerText = myName;
+                     if(greetingHintEl) greetingHintEl.classList.add('hidden');
+                } else {
+                     greetingNameEl.innerText = (appData.members && appData.members.length > 0 ? appData.members[0] : "旅人");
+                     if(greetingHintEl) greetingHintEl.classList.remove('hidden');
+                }
+            }
+
+            let next = null;
+            let nextDate = ""; 
+            if (appData.itinerary) {
+                const dates = Object.keys(appData.itinerary).sort();
+                for(let d of dates) {
+                    if(appData.itinerary[d].length > 0) { 
+                        // Simple future check (very basic)
+                        next = appData.itinerary[d][0]; 
+                        nextDate = d; 
+                        break; 
+                    }
+                }
+            }
+            const nextEl = document.getElementById("dash-next-event");
+            const nextTimeEl = document.getElementById("dash-next-time");
+            
+            if (nextEl) {
+                if(next) {
+                    nextEl.innerText = next.title;
+                    nextEl.dataset.localAddr = next.localAddr || ""; 
+                    nextEl.dataset.title = next.title;
+                    nextEl.dataset.localTitle = next.localTitle || "";
+                    
+                    const datePart = nextDate.split('-').slice(1).join('/');
+                    if(nextTimeEl) nextTimeEl.innerText = `${datePart} ${next.time}`;
+                } else {
+                    nextEl.innerText = "暫無行程";
+                    if(nextTimeEl) nextTimeEl.innerText = "";
+                }
+            }
+        };
+
+        window.autoLink = (text) => {
+            if(!text) return '';
+            const phoneRegex = /(?:\+?(\d{1,3}))?[-. (]*(\d{2,4})[-. )]*(\d{3,4})[-. ]*(\d{4})/g;
+            let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return safeText.replace(phoneRegex, (match) => {
+                return `<a href="tel:${match.replace(/\D/g,'')}" class="text-yellow-500 underline decoration-yellow-500/50 hover:text-yellow-400 transition">${match}</a>`;
+            });
+        };
+
+        window.renderItinerary = () => {
+            const dateTabs = document.getElementById('date-tabs');
+            if (dateTabs && appData.itinerary) {
+                const sortedDates = Object.keys(appData.itinerary).sort();
+                dateTabs.innerHTML = sortedDates.map(date => {
+                    const day = date.split('-')[2];
+                    const active = date === currentDay;
+                    const style = active ? 'bg-yellow-600 text-black font-bold scale-105 shadow-lg' : 'bg-zinc-900 text-zinc-500 border border-zinc-700';
+                    return `<button onclick="setDay('${date}')" class="transition-all duration-300 min-w-[3.5rem] h-14 rounded-[1.2rem] flex flex-col items-center justify-center gap-0.5 mx-1 ${style}">
+                            <span class="text-[9px] tracking-widest opacity-80">12月</span><span class="text-lg leading-none font-bold font-num">${day}</span></button>`;
+                }).join('');
+            }
+
+            const list = document.getElementById('itinerary-list');
+            if (!list) return;
+            const events = (appData.itinerary && appData.itinerary[currentDay]) ? appData.itinerary[currentDay] : [];
+            if(events.length === 0) {
+                list.innerHTML = `<div class="text-zinc-600 text-xs italic pl-8 pt-6 tracking-widest font-bold">本日尚無行程安排。</div>`;
+                return;
+            }
+            list.innerHTML = events.map((e, i) => `
+                <div class="relative pl-8 pb-8 group fade-in event-item" data-id="${i}">
+                    <div class="absolute left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-yellow-600 shadow-[0_0_10px_#D4AF37] z-10 ring-4 ring-[#050505]"></div>
+                    <div class="glass rounded-[1.5rem] p-5 border border-white/5 relative overflow-hidden active:scale-[0.98] transition-transform">
+                        <div class="flex justify-between items-start mb-0 relative z-10"> 
+                            <span class="text-yellow-500 text-sm tracking-widest font-bold font-num">${e.time}</span>
+                            <button onclick="openEditEvent(${i})" class="text-zinc-500 hover:text-white transition cursor-pointer p-2 -mr-2">
+                                <i data-lucide="pencil" size="16"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-white text-lg tracking-wide mb-0.5 font-bold relative z-10">${e.title}</h3> 
+                        ${e.localTitle ? `<div class="text-zinc-500 text-xs font-local mb-2 font-bold">${e.localTitle}</div>` : ''}
+                        ${e.memo ? `<div class="bg-black/30 p-3 rounded-lg text-zinc-300 text-sm leading-relaxed mb-3 border-l-2 border-zinc-700 whitespace-pre-wrap font-medium shadow-inner tracking-wide font-serif">${window.autoLink(e.memo)}</div>` : ''} 
+                        
+                        <div class="flex gap-2 mt-3 relative z-10">
+                             ${e.localTitle ? `
+                             <button onclick="openTaxiMode('${e.title}', '${e.localTitle}', '${e.localAddr}')" class="flex-1 bg-yellow-600/10 border border-yellow-600/30 text-yellow-500 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 hover:bg-yellow-600 hover:text-black transition">
+                                <i data-lucide="car-front" size="14"></i> TAXI
+                             </button>` : ''}
+                             <button onclick="openMap('${e.localAddr || e.title}')" class="flex-1 bg-zinc-800 border border-zinc-700 text-zinc-300 py-2 rounded-xl text-xs flex items-center justify-center gap-1 hover:bg-zinc-700 transition font-bold">
+                                <i data-lucide="map" size="14"></i> G-MAP
+                             </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+            new Sortable(list, {
+                animation: 150, delay: 200, delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    const movedItem = appData.itinerary[currentDay].splice(evt.oldIndex, 1)[0];
+                    appData.itinerary[currentDay].splice(evt.newIndex, 0, movedItem);
+                    saveDataToFirebase();
+                },
+            });
+        };
+
+        window.renderPacking = () => {
+            const list = document.getElementById('packing-list');
+            if (!list) return;
+            const total = appData.packing ? appData.packing.length : 0;
+            const checked = appData.packing ? appData.packing.filter(i => i.checked).length : 0;
+            const pct = total === 0 ? 0 : Math.round((checked/total)*100);
+            
+            const packPercentEl = document.getElementById('pack-percent');
+            if (packPercentEl) packPercentEl.innerText = `${pct}%`;
+            
+            const packRing = document.getElementById('pack-ring');
+            if(packRing) {
+                const offset = 264 - (264 * pct / 100);
+                packRing.style.strokeDashoffset = offset;
+            }
+
+            const cats = [...new Set((appData.packing || []).map(i => i.cat))];
+            list.innerHTML = cats.map(cat => {
+                const items = appData.packing.filter(i => i.cat === cat);
+                const html = items.map(item => `
+                    <div class="flex items-center justify-between py-3 border-b border-white/5 last:border-0 group ${item.checked ? 'opacity-30' : 'opacity-100'} transition-opacity duration-300">
+                        <label class="flex items-center gap-4 cursor-pointer w-full">
+                            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="togglePack(${item.id})" class="accent-yellow-600 w-5 h-5 bg-zinc-800 border-zinc-600 rounded">
+                            <span class="${item.checked ? 'line-through' : ''} text-sm text-zinc-300 font-bold">${item.name}</span>
+                        </label>
+                        <button onclick="deletePack(${item.id})" class="text-zinc-600 hover:text-red-500"><i data-lucide="minus-circle" size="16"></i></button>
+                    </div>
+                `).join('');
+                return `<div class="glass rounded-[1.5rem] p-6 mb-4"><h4 class="text-sm text-yellow-600 tracking-[0.3em] mb-3 font-bold border-l-2 border-yellow-600 pl-2">${cat}</h4><div>${html}</div></div>`;
+            }).join('');
+            lucide.createIcons();
+        };
+
+        window.renderExpenses = () => {
+            const list = document.getElementById('expense-list');
+            if (!list) return; 
+            let total = 0;
+            let balances = {}; 
+            if (appData.members) { appData.members.forEach(m => balances[m] = 0); }
+            const expenses = appData.expenses || [];
+            list.innerHTML = expenses.map((e, i) => {
+                total += Number(e.amount);
+                const share = e.amount / (e.members ? e.members.length : 1);
+                if(balances[e.payer] !== undefined) balances[e.payer] += Number(e.amount);
+                if(e.members) { e.members.forEach(m => { if(balances[m] !== undefined) balances[m] -= share; }); }
+                return `
+                    <div class="flex justify-between items-center py-4 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 rounded-lg transition">
+                        <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400 border border-zinc-700">${e.payer[0]}</div>
+                            <div class="min-w-0">
+                                <div class="text-zinc-200 text-sm font-bold truncate">${e.desc}</div>
+                                <div class="text-[10px] text-zinc-500 mt-0.5 font-bold truncate">付款: ${e.payer} | 分攤: ${e.members ? e.members.join(', ') : ''}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <div class="text-white text-sm font-bold font-num">NT$ ${Number(e.amount).toLocaleString()}</div>
+                            <button onclick="deleteExp(${i})" class="text-zinc-700 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+            const totalExpenseEl = document.getElementById('total-expense');
+            if (totalExpenseEl) totalExpenseEl.innerText = `NT$ ${total.toLocaleString()}`;
+            let html = '';
+            Object.keys(balances).forEach(p => {
+                const val = Math.round(balances[p]);
+                if(val > 0) html += `<div class="flex justify-between text-green-400/90 text-xs py-1 border-b border-zinc-800/50"><span class="font-bold">${p}</span><span class="font-bold font-num">應收 $${val}</span></div>`;
+                else if(val < 0) html += `<div class="flex justify-between text-red-400/90 text-xs py-1 border-b border-zinc-800/50"><span class="font-bold">${p}</span><span class="font-bold font-num">應付 $${Math.abs(val)}</span></div>`;
+            });
+            const splitResultEl = document.getElementById('split-result');
+            if (splitResultEl) { splitResultEl.innerHTML = html || "暫無帳務"; }
+        };
+
+        window.renderAll = () => {
+            updateDashboard();
+            renderItinerary();
+            renderPacking();
+            renderExpenses();
+            renderMembers();
+            const memoArea = document.getElementById('global-memo');
+            if(memoArea && document.activeElement !== memoArea) {
+                memoArea.value = appData.memo || "";
+            }
+        };
+
+        init();
+    </script>
+
+    <!-- UI Scripts -->
+    <script>
+        function openTaxiMode(title, localTitle, localAddr) {
+            document.getElementById('taxi-local-title').innerText = localTitle || title;
+            document.getElementById('taxi-local-addr').innerText = localAddr || "地址未設定";
+            document.getElementById('taxi-cht-title').innerText = title;
+            document.getElementById('taxi-overlay').classList.remove('hidden');
+            document.getElementById('taxi-overlay').classList.add('flex');
+        }
+        function closeTaxiMode() {
+            document.getElementById('taxi-overlay').classList.add('hidden');
+            document.getElementById('taxi-overlay').classList.remove('flex');
+        }
+        // Change to Google Maps
+        function openMap(query) {
+            if(!query) return;
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
+        }
+        function quickTaxi() {
+            const el = document.getElementById("dash-next-event");
+            if(el.innerText !== "暫無行程" && el.dataset.localTitle) {
+                openTaxiMode(el.dataset.title, el.dataset.localTitle, el.dataset.localAddr);
+            } else {
+                alert("下一個行程沒有泰文資訊");
+            }
+        }
+        function quickMap() {
+            const el = document.getElementById("dash-next-event");
+            if(el.innerText !== "暫無行程") {
+                openMap(el.dataset.localAddr || el.dataset.title);
+            }
+        }
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                if(el.id !== tabId) {
+                    el.classList.remove('active');
+                    setTimeout(() => { if(!el.classList.contains('active')) el.style.display = 'none'; }, 300);
+                }
+            });
+            const target = document.getElementById(tabId);
+            target.style.display = 'block';
+            void target.offsetWidth; 
+            target.classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('text-yellow-500');
+                el.classList.add('text-zinc-500');
+            });
+            if(btn) {
+                btn.classList.remove('text-zinc-500');
+                btn.classList.add('text-yellow-500');
+            }
+            document.getElementById('main-container').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function toggleSettlement() { document.getElementById('settlement-view').classList.toggle('hidden'); }
+        
+        function openActionSheet() {
+            const sheet = document.getElementById('action-sheet');
+            const overlay = document.getElementById('action-sheet-overlay');
+            overlay.classList.remove('hidden');
+            void overlay.offsetWidth;
+            overlay.classList.remove('opacity-0');
+            sheet.classList.remove('translate-y-full');
+        }
+        function closeActionSheet() {
+            const sheet = document.getElementById('action-sheet');
+            const overlay = document.getElementById('action-sheet-overlay');
+            sheet.classList.add('translate-y-full');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+        function openSubModal(id, skipClear) {
+            closeActionSheet();
+            if (!skipClear) { 
+                if(id === 'modal-expense') {
+                    window.populateMembers();
+                    window.populatePayers(); 
+                }
+                if(id === 'modal-members') window.renderMembers();
+            }
+            
+            setTimeout(() => {
+                document.getElementById('modal-container').classList.remove('hidden');
+                document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden'));
+                document.getElementById(id).classList.remove('hidden');
+            }, 300);
+        }
+        function closeSubModal() { document.getElementById('modal-container').classList.add('hidden'); }
+    </script>
+</body>
+</html>
+
+
